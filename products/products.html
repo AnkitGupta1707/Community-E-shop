@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products | Community E-Shop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+
+  <header class="border-b bg-white">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+      <a href="index.html" class="text-xl font-bold text-green-700">🌱 Community E-Shop</a>
+      <ul class="hidden gap-6 text-sm font-medium md:flex">
+        <li><a href="index.html" class="hover:text-green-700">Home</a></li>
+        <li><a href="products.html" class="text-green-700">Products</a></li>
+        <li><a href="group-buy.html" class="hover:text-green-700">Group-Buy</a></li>
+        <li><a href="my-requests.html" class="hover:text-green-700">My Requests</a></li>
+        <li><a href="organiser.html" class="hover:text-green-700">Organiser</a></li>
+      </ul>
+      <a href="login.html" class="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800">Login / Register</a>
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-10">
+    <h1 class="text-3xl font-bold text-green-900">Product catalogue</h1>
+    <p class="mt-1 text-slate-600">Prices are indicative. The final price is set when the organiser confirms the order.</p>
+
+    <input id="search" type="search" placeholder="Search products..."
+      class="mt-6 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-600/20" />
+
+    <div id="filters" class="mt-4 flex flex-wrap gap-2"></div>
+
+    <div id="grid" class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"></div>
+    <p id="empty" class="mt-12 hidden text-center text-slate-500">No products match your search.</p>
+  </main>
+
+  <script>
+    const categories = ["All", "Growing", "Soil & Compost", "Seeds", "Tools", "Plant Care"];
+    const products = [
+      { name: "Premium Growbags", category: "Growing", price: 1.85, unit: "per bag", stock: "in" },
+      { name: "Peat-Free Compost 50L", category: "Soil & Compost", price: 6.5, unit: "per sack", stock: "in" },
+      { name: "Tomato Seeds Mix", category: "Seeds", price: 2.2, unit: "per packet", stock: "limited" },
+      { name: "Garden Trowel", category: "Tools", price: 5.9, unit: "each", stock: "in" },
+      { name: "Organic Plant Feed 1L", category: "Plant Care", price: 4.75, unit: "per bottle", stock: "limited" },
+      { name: "Seed Trays (pack of 5)", category: "Growing", price: 3.4, unit: "per pack", stock: "in" },
+      { name: "Vegetable Seed Starter Kit", category: "Seeds", price: 8.99, unit: "per kit", stock: "in" },
+      { name: "Garden Twine 100m", category: "Tools", price: 2.1, unit: "per roll", stock: "limited" },
+    ];
+
+    let activeCategory = "All";
+    const searchEl = document.getElementById("search");
+
+    function renderFilters() {
+      document.getElementById("filters").innerHTML = categories.map((c) => `
+        <button data-cat="${c}" class="rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+          c === activeCategory
+            ? "border-green-700 bg-green-700 text-white"
+            : "border-slate-300 bg-white text-slate-600 hover:border-green-600"}">${c}</button>`).join("");
+      document.querySelectorAll("#filters button").forEach((b) =>
+        b.addEventListener("click", () => { activeCategory = b.dataset.cat; renderFilters(); renderGrid(); }));
+    }
+
+    function renderGrid() {
+      const q = searchEl.value.toLowerCase();
+      const list = products.filter((p) =>
+        (activeCategory === "All" || p.category === activeCategory) && p.name.toLowerCase().includes(q));
+
+      document.getElementById("empty").classList.toggle("hidden", list.length > 0);
+      document.getElementById("grid").innerHTML = list.map((p) => `
+        <div class="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="flex h-32 items-center justify-center rounded-xl bg-green-50 text-5xl">🌿</div>
+          <div class="mt-4 flex items-start justify-between gap-2">
+            <h3 class="font-semibold leading-snug">${p.name}</h3>
+            <span class="whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              p.stock === "in" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}">
+              ${p.stock === "in" ? "In stock" : "Limited"}</span>
+          </div>
+          <p class="text-xs text-slate-500">${p.category}</p>
+          <p class="mt-3 text-lg font-bold text-green-700">£${p.price.toFixed(2)}
+            <span class="text-sm font-normal text-slate-500">${p.unit}</span></p>
+          <a href="group-buy.html" class="mt-4 rounded-lg bg-green-700 py-2 text-center text-sm font-semibold text-white hover:bg-green-800">View group-buy</a>
+        </div>`).join("");
+    }
+
+    searchEl.addEventListener("input", renderGrid);
+    renderFilters();
+    renderGrid();
+  </script>
+</body>
+</html>
+

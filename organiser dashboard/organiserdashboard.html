@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organiser | Community E-Shop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+
+  <header class="border-b bg-white">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+      <a href="index.html" class="text-xl font-bold text-green-700">🌱 Community E-Shop</a>
+      <ul class="hidden gap-6 text-sm font-medium md:flex">
+        <li><a href="index.html" class="hover:text-green-700">Home</a></li>
+        <li><a href="products.html" class="hover:text-green-700">Products</a></li>
+        <li><a href="group-buy.html" class="hover:text-green-700">Group-Buy</a></li>
+        <li><a href="my-requests.html" class="hover:text-green-700">My Requests</a></li>
+        <li><a href="organiser.html" class="text-green-700">Organiser</a></li>
+      </ul>
+      <a href="login.html" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Log out</a>
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-10">
+    <h1 class="text-3xl font-bold text-green-900">Organiser dashboard</h1>
+    <p class="mt-1 text-slate-600">Manage demand, record costs and move each group-buy forward.</p>
+
+    <!-- Summary -->
+    <div id="summary" class="mt-6 grid gap-4 sm:grid-cols-3"></div>
+
+    <!-- Group-buys -->
+    <div id="list" class="mt-8 space-y-6"></div>
+  </main>
+
+  <script>
+    const statusStyles = {
+      "Collecting": "bg-amber-100 text-amber-700",
+      "Target reached": "bg-blue-100 text-blue-700",
+      "Confirmed": "bg-indigo-100 text-indigo-700",
+      "Ordered": "bg-purple-100 text-purple-700",
+      "Ready": "bg-green-100 text-green-700",
+      "Completed": "bg-slate-200 text-slate-600",
+      "Cancelled": "bg-red-100 text-red-700",
+    };
+
+    const groupBuys = [
+      { id: "GB-01", product: "Premium Growbags", joined: 64, target: 100, minimum: 50, members: 7, status: "Collecting", itemCost: "", delivery: "", packaging: "" },
+      { id: "GB-02", product: "Peat-Free Compost 50L", joined: 40, target: 40, minimum: 20, members: 12, status: "Target reached", itemCost: "", delivery: "", packaging: "" },
+      { id: "GB-03", product: "Organic Plant Feed 1L", joined: 30, target: 30, minimum: 15, members: 9, status: "Confirmed", itemCost: "112.50", delivery: "18.00", packaging: "4.50" },
+    ];
+
+    const num = (v) => parseFloat(v) || 0;
+    const totalCost = (g) => num(g.itemCost) + num(g.delivery) + num(g.packaging);
+    const isClosed = (g) => ["Completed", "Cancelled"].includes(g.status);
+
+    function renderSummary() {
+      const active = groupBuys.filter((g) => !isClosed(g)).length;
+      const demand = groupBuys.reduce((s, g) => s + g.joined, 0);
+      document.getElementById("summary").innerHTML = [
+        ["Active group-buys", active],
+        ["Total items pledged", demand],
+        ["Total group-buys", groupBuys.length],
+      ].map(([label, value]) => `
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-sm text-slate-500">${label}</p>
+          <p class="mt-1 text-3xl font-bold text-green-700">${value}</p>
+        </div>`).join("");
+    }
+
+    function costField(g, key, label) {
+      return `
+        <div>
+          <label class="mb-1 block text-xs font-medium text-slate-500">${label}</label>
+          <input type="number" min="0" step="0.01" value="${g[key]}" ${isClosed(g) ? "disabled" : ""}
+            data-id="${g.id}" data-key="${key}"
+            class="cost w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-600/20" />
+        </div>`;
+    }
+
+    function renderList() {
+      document.getElementById("list").innerHTML = groupBuys.map((g) => {
+        const pct = Math.min(100, Math.round((g.joined / g.target) * 100));
+        const total = totalCost(g);
+        return `
+        <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-semibold">${g.product}</h2>
+              <p class="text-xs text-slate-400">${g.id} · ${g.members} members · minimum ${g.minimum}</p>
+            </div>
+            <span class="rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[g.status]}">${g.status}</span>
+          </div>
+
+          <div class="mt-4">
+            <div class="mb-1 flex justify-between text-sm">
+              <span>${g.joined} / ${g.target} pledged</span>
+              <span class="text-slate-500">${pct}%</span>
+            </div>
+            <div class="h-3 overflow-hidden rounded-full bg-slate-200">
+              <div class="h-full rounded-full bg-green-600" style="width:${pct}%"></div>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-3 sm:grid-cols-4">
+            ${costField(g, "itemCost", "Item cost (£)")}
+            ${costField(g, "delivery", "Delivery (£)")}
+            ${costField(g, "packaging", "Packaging (£)")}
+            <div class="rounded-lg bg-slate-50 p-2 text-center">
+              <p class="text-xs text-slate-500">Total cost</p>
+              <p id="total-${g.id}" class="text-lg font-bold">£${total.toFixed(2)}</p>
+              <p id="per-${g.id}" class="text-xs text-slate-400">£${(total / g.joined).toFixed(2)} per item</p>
+            </div>
+          </div>
+
+          ${isClosed(g) ? "" : `
+          <div class="mt-5 flex flex-wrap gap-3">
+            <button data-act="Confirmed" data-id="${g.id}" ${g.joined < g.minimum ? "disabled" : ""}
+              class="act rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-300">Confirm</button>
+            <button data-act="Ordered" data-id="${g.id}" ${g.status !== "Confirmed" ? "disabled" : ""}
+              class="act rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-slate-300">Mark as ordered</button>
+            <button data-act="Cancelled" data-id="${g.id}"
+              class="act rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">Cancel</button>
+          </div>`}
+        </article>`;
+      }).join("");
+
+      // Status buttons: re-render
+      document.querySelectorAll(".act").forEach((b) =>
+        b.addEventListener("click", () => {
+          groupBuys.find((g) => g.id === b.dataset.id).status = b.dataset.act;
+          renderSummary();
+          renderList();
+        }));
+
+      // Cost inputs: update totals only (keeps focus while typing)
+      document.querySelectorAll(".cost").forEach((i) =>
+        i.addEventListener("input", () => {
+          const g = groupBuys.find((x) => x.id === i.dataset.id);
+          g[i.dataset.key] = i.value;
+          const t = totalCost(g);
+          document.getElementById("total-" + g.id).textContent = "£" + t.toFixed(2);
+          document.getElementById("per-" + g.id).textContent = "£" + (t / g.joined).toFixed(2) + " per item";
+        }));
+    }
+
+    renderSummary();
+    renderList();
+  </script>
+</body>
+</html>
+
