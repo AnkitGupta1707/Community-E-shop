@@ -6,9 +6,9 @@
   <title>Login / Register | Community E-Shop</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="flex min-h-screen items-center justify-center bg-green-50 px-4 text-slate-800">
+<body class="flex min-h-screen items-center justify-center bg-green-50 px-4 py-8 text-slate-800">
   <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-    <a href="index.html" class="mb-6 block text-center">
+    <a href="../home/home.html" class="mb-6 block text-center">
       <span class="text-2xl font-bold text-green-700">🌱 Community E-Shop</span>
       <span class="mt-1 block text-sm text-slate-500">Buy together. Save together. Grow together.</span>
     </a>
@@ -58,6 +58,10 @@
       <span id="switch-text">New to Community E-Shop?</span>
       <button id="switch-btn" type="button" class="font-medium text-green-700 hover:underline">Register</button>
     </p>
+
+    <div class="mt-4 border-t pt-4 text-center">
+      <a href="../home/home.html" class="text-xs text-slate-400 hover:text-slate-600">← Back to home</a>
+    </div>
   </div>
 
   <style>
@@ -94,8 +98,28 @@
         $("error").classList.remove("hidden");
         return;
       }
-      // TODO: call POST /api/auth/login or /api/auth/register
-      window.location.href = "index.html";
+
+      const email = $("email").value.trim().toLowerCase();
+      let role = "member";
+      if (mode === "register") {
+        role = $("role").value;
+      } else {
+        if (email.includes("organiser") || email.includes("admin")) {
+          role = "organiser";
+        }
+      }
+
+      localStorage.setItem("currentUser", JSON.stringify({
+        email: email,
+        name: $("name").value || email.split("@")[0],
+        role: role
+      }));
+
+      if (role === "organiser") {
+        window.location.href = "../organiser dashboard/organiserdashboard.html";
+      } else {
+        window.location.href = "../members dashboard/memberdashboard.html";
+      }
     });
 
     render();
